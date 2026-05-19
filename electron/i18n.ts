@@ -269,3 +269,102 @@ export function localizeByLanguage(language: AppLanguage, zh: string, en: string
 export function buildDefaultSessionName(index: number, language: AppLanguage): string {
   return language === "zh-CN" ? `会话 ${index}` : `Session ${index}`;
 }
+
+export type MainMessageKey =
+  | "git_open_stage"
+  | "git_open_unstage"
+  | "git_open_commit"
+  | "git_open_switch_branch"
+  | "git_open_create_branch"
+  | "git_open_push_branch"
+  | "git_unavailable"
+  | "git_not_repo"
+  | "git_commit_message_required"
+  | "git_commit_stage_required"
+  | "git_branch_name_required"
+  | "git_branch_unknown"
+  | "git_remote_missing"
+  | "git_commit_created"
+  | "workspace_open_required"
+  | "command_empty"
+  | "provider_api_key_missing"
+  | "provider_missing_content"
+  | "workspace_file_outside"
+  | "workspace_path_not_file"
+  | "preview_start_script_missing"
+  | "open_workspace_dialog_title"
+  | "binary_preview_skipped"
+  | "stream_unknown_error";
+
+const mainTranslations: Record<AppLanguage, Record<MainMessageKey, string>> = {
+  "zh-CN": {
+    git_open_stage: "请先打开工作区，再暂存 Git 改动。",
+    git_open_unstage: "请先打开工作区，再取消暂存 Git 改动。",
+    git_open_commit: "请先打开工作区，再提交 Git 改动。",
+    git_open_switch_branch: "请先打开工作区，再切换分支。",
+    git_open_create_branch: "请先打开工作区，再创建分支。",
+    git_open_push_branch: "请先打开工作区，再推送分支。",
+    git_unavailable: "当前环境里无法使用 Git。",
+    git_not_repo: "当前工作区不在 Git 仓库中。",
+    git_commit_message_required: "提交说明不能为空。",
+    git_commit_stage_required: "提交前请至少暂存一个文件。",
+    git_branch_name_required: "分支名不能为空。",
+    git_branch_unknown: "CodeDT 无法识别当前分支。",
+    git_remote_missing: "这个仓库还没有配置 Git 远程地址。",
+    git_commit_created: "已创建提交",
+    workspace_open_required: "当前还没有打开工作区。",
+    command_empty: "命令不能为空。",
+    provider_api_key_missing: "还没有配置 Provider API Key。",
+    provider_missing_content: "模型响应里没有返回助手内容。",
+    workspace_file_outside: "文件不在当前工作区内。",
+    workspace_path_not_file: "所选路径不是文件。",
+    preview_start_script_missing: "没有找到可用于启动预览的 package 脚本。",
+    open_workspace_dialog_title: "打开 CodeDT 工作区",
+    binary_preview_skipped: "CodeDT 已跳过预览，因为这个文件看起来是二进制文件。",
+    stream_unknown_error: "流式请求出现未知错误。"
+  },
+  "en-US": {
+    git_open_stage: "Open a workspace before staging git changes.",
+    git_open_unstage: "Open a workspace before unstaging git changes.",
+    git_open_commit: "Open a workspace before committing git changes.",
+    git_open_switch_branch: "Open a workspace before switching branches.",
+    git_open_create_branch: "Open a workspace before creating a branch.",
+    git_open_push_branch: "Open a workspace before pushing a branch.",
+    git_unavailable: "Git is not available in this environment.",
+    git_not_repo: "This workspace is not inside a git repository.",
+    git_commit_message_required: "Commit message cannot be empty.",
+    git_commit_stage_required: "Stage at least one file before committing.",
+    git_branch_name_required: "Branch name cannot be empty.",
+    git_branch_unknown: "CodeDT could not determine the current branch.",
+    git_remote_missing: "No git remote is configured for this repository.",
+    git_commit_created: "Commit created",
+    workspace_open_required: "No workspace is open.",
+    command_empty: "Command cannot be empty.",
+    provider_api_key_missing: "Provider API key is not configured.",
+    provider_missing_content: "Provider response did not include assistant content.",
+    workspace_file_outside: "File is outside the current workspace.",
+    workspace_path_not_file: "Selected path is not a file.",
+    preview_start_script_missing: "No supported package script was found for preview startup.",
+    open_workspace_dialog_title: "Open CodeDT Workspace",
+    binary_preview_skipped: "CodeDT skipped preview because this file appears to be binary.",
+    stream_unknown_error: "Unknown streaming error."
+  }
+};
+
+export function translateMain(language: AppLanguage, key: MainMessageKey): string {
+  return mainTranslations[language][key];
+}
+
+export function formatGitPushSummary(
+  language: AppLanguage,
+  branch: string,
+  upstreamBranch: string | null
+): string {
+  if (upstreamBranch) {
+    return language === "zh-CN"
+      ? `已将 ${branch} 推送到 ${upstreamBranch}。`
+      : `Pushed ${branch} to ${upstreamBranch}.`;
+  }
+
+  return language === "zh-CN" ? `已推送 ${branch}。` : `Pushed ${branch}.`;
+}

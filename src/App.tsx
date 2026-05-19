@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
   Bot,
@@ -18,246 +18,15 @@ import {
   Terminal,
   X
 } from "lucide-react";
+import { getModeLabel, getProviderLabel, translateUi, type AppLanguage, type TranslationKey } from "../electron/i18n";
 import { CodePreview } from "./components/CodePreview";
 
-type Language = "zh-CN" | "en-US";
+type Language = AppLanguage;
 type UiMessage = ChatThreadStateMessage;
 
 type AppSessionState = {
   activeSessionId: string | null;
   isReady: boolean;
-};
-
-type TranslationKey =
-  | "app_title"
-  | "workspace"
-  | "open_workspace"
-  | "opening"
-  | "settings"
-  | "project_files"
-  | "search_files"
-  | "no_workspace"
-  | "choose_workspace"
-  | "file_preview"
-  | "binary_file"
-  | "cannot_preview_binary"
-  | "mode"
-  | "ask"
-  | "build"
-  | "fix"
-  | "review"
-  | "design"
-  | "docs"
-  | "context"
-  | "add_context"
-  | "remove_context"
-  | "chat"
-  | "send"
-  | "stop"
-  | "assistant"
-  | "user"
-  | "preview"
-  | "open"
-  | "capture"
-  | "refresh"
-  | "check"
-  | "start_dev_server"
-  | "stop_server"
-  | "command"
-  | "run"
-  | "stop_command"
-  | "git"
-  | "refresh_git"
-  | "stage_all"
-  | "unstage_all"
-  | "commit"
-  | "push"
-  | "commit_message"
-  | "provider"
-  | "provider_saved"
-  | "save_settings"
-  | "cancel"
-  | "api_key"
-  | "base_url"
-  | "model"
-  | "language"
-  | "chinese"
-  | "english"
-  | "chat_placeholder"
-  | "preview_placeholder"
-  | "command_placeholder"
-  | "welcome_user"
-  | "welcome_assistant"
-  | "workspace_path"
-  | "preview_waiting"
-  | "command_waiting"
-  | "git_waiting"
-  | "working_tree_clean"
-  | "working_tree_dirty"
-  | "staged"
-  | "modified"
-  | "untracked"
-  | "deleted"
-  | "conflicts"
-  | "latest_commit"
-  | "selected_file"
-  | "thinking"
-  | "request_failed";
-
-const translations: Record<Language, Record<TranslationKey, string>> = {
-  "zh-CN": {
-    app_title: "CodeDT",
-    workspace: "工作区",
-    open_workspace: "打开工作区",
-    opening: "处理中...",
-    settings: "设置",
-    project_files: "项目文件",
-    search_files: "搜索文件",
-    no_workspace: "还没有打开任何工作区。",
-    choose_workspace: "请先打开一个本地项目目录。",
-    file_preview: "文件预览",
-    binary_file: "二进制文件",
-    cannot_preview_binary: "这个文件不能按文本方式预览。",
-    mode: "模式",
-    ask: "问答",
-    build: "构建",
-    fix: "修复",
-    review: "审查",
-    design: "设计",
-    docs: "文档",
-    context: "上下文",
-    add_context: "加入上下文",
-    remove_context: "移出上下文",
-    chat: "对话",
-    send: "发送",
-    stop: "停止",
-    assistant: "CodeDT 助手",
-    user: "用户",
-    preview: "预览",
-    open: "打开",
-    capture: "截图",
-    refresh: "刷新",
-    check: "检查",
-    start_dev_server: "启动开发服务",
-    stop_server: "停止服务",
-    command: "工作区命令",
-    run: "运行",
-    stop_command: "停止命令",
-    git: "Git",
-    refresh_git: "刷新 Git",
-    stage_all: "全部暂存",
-    unstage_all: "取消全部暂存",
-    commit: "提交",
-    push: "推送",
-    commit_message: "提交说明",
-    provider: "模型提供方",
-    provider_saved: "模型设置已保存。",
-    save_settings: "保存设置",
-    cancel: "取消",
-    api_key: "API Key",
-    base_url: "接口地址",
-    model: "模型",
-    language: "语言",
-    chinese: "中文",
-    english: "English",
-    chat_placeholder: "输入你的请求，开始和 CodeDT 一起工作...",
-    preview_placeholder: "127.0.0.1:5173",
-    command_placeholder: "npm run lint",
-    welcome_user: "继续把 CodeDT 打造成一个真正可用的 AI 编程工作台。",
-    welcome_assistant: "本地工作台已经就绪。先打开工作区或配置模型，我们就能继续推进。",
-    workspace_path: "工作区路径",
-    preview_waiting: "打开一个 localhost 地址后，这里会显示实时预览。",
-    command_waiting: "在这里运行命令，用于验证、构建或测试项目。",
-    git_waiting: "打开工作区后，这里会显示仓库状态。",
-    working_tree_clean: "工作树干净",
-    working_tree_dirty: "工作树有改动",
-    staged: "已暂存",
-    modified: "已修改",
-    untracked: "未跟踪",
-    deleted: "已删除",
-    conflicts: "冲突",
-    latest_commit: "最近提交",
-    selected_file: "当前文件",
-    thinking: "思考中...",
-    request_failed: "请求失败"
-  },
-  "en-US": {
-    app_title: "CodeDT",
-    workspace: "Workspace",
-    open_workspace: "Open Workspace",
-    opening: "Working...",
-    settings: "Settings",
-    project_files: "Project Files",
-    search_files: "Search Files",
-    no_workspace: "No workspace opened yet.",
-    choose_workspace: "Open a local project directory first.",
-    file_preview: "File Preview",
-    binary_file: "Binary File",
-    cannot_preview_binary: "This file cannot be previewed as text.",
-    mode: "Mode",
-    ask: "Ask",
-    build: "Build",
-    fix: "Fix",
-    review: "Review",
-    design: "Design",
-    docs: "Docs",
-    context: "Context",
-    add_context: "Add Context",
-    remove_context: "Remove Context",
-    chat: "Chat",
-    send: "Send",
-    stop: "Stop",
-    assistant: "CodeDT Assistant",
-    user: "User",
-    preview: "Preview",
-    open: "Open",
-    capture: "Capture",
-    refresh: "Refresh",
-    check: "Check",
-    start_dev_server: "Start Dev Server",
-    stop_server: "Stop Server",
-    command: "Workspace Command",
-    run: "Run",
-    stop_command: "Stop Command",
-    git: "Git",
-    refresh_git: "Refresh Git",
-    stage_all: "Stage All",
-    unstage_all: "Unstage All",
-    commit: "Commit",
-    push: "Push",
-    commit_message: "Commit Message",
-    provider: "Model Provider",
-    provider_saved: "Provider settings saved.",
-    save_settings: "Save Settings",
-    cancel: "Cancel",
-    api_key: "API Key",
-    base_url: "Base URL",
-    model: "Model",
-    language: "Language",
-    chinese: "中文",
-    english: "English",
-    chat_placeholder: "Type your request and start working with CodeDT...",
-    preview_placeholder: "127.0.0.1:5173",
-    command_placeholder: "npm run lint",
-    welcome_user: "Keep turning CodeDT into a truly usable AI coding workspace.",
-    welcome_assistant:
-      "The local workspace is ready. Open a workspace or configure a model provider and we can keep moving.",
-    workspace_path: "Workspace Path",
-    preview_waiting: "Open a localhost target and the live preview will appear here.",
-    command_waiting: "Run commands here to verify, build, or test the project.",
-    git_waiting: "Git status will appear here after you open a workspace.",
-    working_tree_clean: "Working tree clean",
-    working_tree_dirty: "Working tree has changes",
-    staged: "Staged",
-    modified: "Modified",
-    untracked: "Untracked",
-    deleted: "Deleted",
-    conflicts: "Conflicts",
-    latest_commit: "Latest Commit",
-    selected_file: "Selected File",
-    thinking: "Thinking...",
-    request_failed: "Request failed"
-  }
 };
 
 const modeOrder: WorkspaceMode[] = ["Ask", "Build", "Fix", "Review", "Design", "Docs"];
@@ -275,16 +44,7 @@ function getStoredLanguage(): Language {
 }
 
 function modeLabel(language: Language, mode: WorkspaceMode): string {
-  const keyMap: Record<WorkspaceMode, TranslationKey> = {
-    Ask: "ask",
-    Build: "build",
-    Fix: "fix",
-    Review: "review",
-    Design: "design",
-    Docs: "docs"
-  };
-
-  return translations[language][keyMap[mode]];
+  return getModeLabel(language, mode);
 }
 
 function countFiles(nodes: WorkspaceTreeNode[]): number {
@@ -363,8 +123,8 @@ function translateRuntimeMessage(language: Language, message: string): string {
   }
 
   const replacements: Array<[string, string]> = [
-    ["Provider API key is not configured.", "还没有配置 Provider API Key。"],
-    ["Provider response did not include assistant content.", "模型响应里没有返回助手内容。"],
+    ["Provider API key is not configured.", "尚未配置 Provider API Key。"],
+    ["Provider response did not include assistant content.", "模型响应中没有返回助手内容。"],
     ["Provider request failed", "模型请求失败"],
     ["Provider stream failed", "模型流式请求失败"],
     ["Open the workspace in Electron.", "请在 Electron 中打开工作区。"],
@@ -411,22 +171,68 @@ function buildInitialMessages(language: Language): UiMessage[] {
     {
       id: "welcome-user",
       role: "user",
-      content: translations[language].welcome_user
+      content: translateUi(language, "welcome_user")
     },
     {
       id: "welcome-assistant",
       role: "assistant",
-      content: translations[language].welcome_assistant
+      content: translateUi(language, "welcome_assistant")
     }
   ];
 }
 
 function providerOptionLabel(language: Language, provider: ProviderSettings["provider"]): string {
+  return getProviderLabel(language, provider);
+}
+
+function providerHelperText(language: Language, provider: ProviderSettings["provider"]): string {
   if (provider === "deepseek") {
-    return language === "zh-CN" ? "DeepSeek" : "DeepSeek";
+    return language === "zh-CN"
+      ? "适合把 DeepSeek 作为默认主力模型，通常只需要填写 API Key。"
+      : "Best when DeepSeek is your default primary model. Usually only the API key is required.";
   }
 
-  return language === "zh-CN" ? "OpenAI 兼容接口" : "OpenAI Compatible";
+  return language === "zh-CN"
+    ? "用于接入 OpenAI 兼容接口，自定义 Base URL 和模型名会更常见。"
+    : "Use this for OpenAI-compatible endpoints where custom base URLs and model names are common.";
+}
+
+function providerFieldPlaceholder(
+  provider: ProviderSettings["provider"],
+  field: "baseUrl" | "model" | "apiKey"
+): string {
+  if (field === "apiKey") {
+    return provider === "deepseek" ? "sk-..." : "api-key";
+  }
+
+  if (field === "baseUrl") {
+    return provider === "deepseek" ? "https://api.deepseek.com" : "https://api.openai.com/v1";
+  }
+
+  return provider === "deepseek" ? "deepseek-chat" : "gpt-4.1";
+}
+
+function desktopOnlyMessage(
+  language: Language,
+  capability: "workspace" | "settings" | "preview" | "command" | "git"
+): string {
+  if (language === "zh-CN") {
+    if (capability === "workspace") return "请在 Electron 桌面版中打开工作区。";
+    if (capability === "settings") return "请在 Electron 桌面版中保存模型设置。";
+    if (capability === "preview") return "请在 Electron 桌面版中使用预览检测、启动和截图功能。";
+    if (capability === "command") return "请在 Electron 桌面版中运行工作区命令。";
+    return "请在 Electron 桌面版中使用 Git 操作。";
+  }
+
+  if (capability === "workspace") return "Open a workspace in the Electron desktop app.";
+  if (capability === "settings") return "Save provider settings in the Electron desktop app.";
+  if (capability === "preview") return "Use preview checks, dev server controls, and captures in the Electron desktop app.";
+  if (capability === "command") return "Run workspace commands in the Electron desktop app.";
+  return "Use Git actions in the Electron desktop app.";
+}
+
+function desktopOnlyBadgeLabel(language: Language): string {
+  return language === "zh-CN" ? "仅桌面版" : "Desktop only";
 }
 
 function buildContextMessage(files: WorkspaceFilePreview[], language: Language, mode: WorkspaceMode): ChatMessage | null {
@@ -483,6 +289,7 @@ function SettingsDialog({
   open,
   settings,
   isSaving,
+  showDesktopBadge,
   message,
   onClose,
   onSave
@@ -491,11 +298,12 @@ function SettingsDialog({
   open: boolean;
   settings: ProviderSettings;
   isSaving: boolean;
+  showDesktopBadge: boolean;
   message: string | null;
   onClose: () => void;
   onSave: (settings: ProviderSettings) => void;
 }) {
-  const t = (key: TranslationKey) => translations[language][key];
+  const t = (key: TranslationKey) => translateUi(language, key);
   const [draft, setDraft] = useState(settings);
 
   useEffect(() => {
@@ -521,6 +329,8 @@ function SettingsDialog({
           </button>
         </div>
 
+        {showDesktopBadge ? <p className="capability-note">{desktopOnlyBadgeLabel(language)}</p> : null}
+
         <div className="provider-toggle" aria-label={t("provider")}>
           <button
             className={draft.provider === "deepseek" ? "active" : ""}
@@ -529,7 +339,7 @@ function SettingsDialog({
                 ...current,
                 provider: "deepseek",
                 baseUrl: "https://api.deepseek.com",
-                model: current.model || "deepseek-chat"
+                model: "deepseek-chat"
               }));
             }}
             type="button"
@@ -542,8 +352,8 @@ function SettingsDialog({
               setDraft((current) => ({
                 ...current,
                 provider: "openai-compatible",
-                baseUrl: current.baseUrl || "https://api.openai.com/v1",
-                model: current.model || "gpt-4.1"
+                baseUrl: "https://api.openai.com/v1",
+                model: "gpt-4.1"
               }));
             }}
             type="button"
@@ -552,10 +362,13 @@ function SettingsDialog({
           </button>
         </div>
 
+        <p className="settings-helper-note">{providerHelperText(language, draft.provider)}</p>
+
         <div className="settings-grid">
           <label className="settings-field">
             <span>{t("base_url")}</span>
             <input
+              placeholder={providerFieldPlaceholder(draft.provider, "baseUrl")}
               value={draft.baseUrl}
               onChange={(event) => {
                 setDraft((current) => ({ ...current, baseUrl: event.target.value }));
@@ -565,6 +378,7 @@ function SettingsDialog({
           <label className="settings-field">
             <span>{t("model")}</span>
             <input
+              placeholder={providerFieldPlaceholder(draft.provider, "model")}
               value={draft.model}
               onChange={(event) => {
                 setDraft((current) => ({ ...current, model: event.target.value }));
@@ -577,6 +391,7 @@ function SettingsDialog({
               <KeyRound size={17} />
               <input
                 type="password"
+                placeholder={providerFieldPlaceholder(draft.provider, "apiKey")}
                 value={draft.apiKey}
                 onChange={(event) => {
                   setDraft((current) => ({ ...current, apiKey: event.target.value }));
@@ -611,6 +426,9 @@ function SettingsDialog({
 
 export function App() {
   const [language, setLanguage] = useState<Language>(getStoredLanguage());
+  const [languageFeedback, setLanguageFeedback] = useState<string | null>(null);
+  const [desktopFeedback, setDesktopFeedback] = useState<string | null>(null);
+  const [settingsFeedback, setSettingsFeedback] = useState<string | null>(null);
   const [providerSettings, setProviderSettings] = useState<ProviderSettings>(defaultProvider);
   const [workspace, setWorkspace] = useState<WorkspaceSnapshot | null>(null);
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
@@ -657,7 +475,29 @@ export function App() {
   });
 
   const streamRequestsRef = useRef<Record<string, { kind: "chat" }>>({});
-  const t = useCallback((key: TranslationKey) => translations[language][key], [language]);
+  const languageFeedbackTimeoutRef = useRef<number | null>(null);
+  const desktopFeedbackTimeoutRef = useRef<number | null>(null);
+  const settingsFeedbackTimeoutRef = useRef<number | null>(null);
+  const t = useCallback((key: TranslationKey) => translateUi(language, key), [language]);
+  const hasDesktopWorkspaceApi = Boolean(window.codedt?.workspace?.openProject);
+  const hasDesktopPreviewApi = Boolean(window.codedt?.preview?.start);
+  const hasDesktopCommandApi = Boolean(window.codedt?.command?.run);
+  const hasDesktopGitApi = Boolean(window.codedt?.git?.stage);
+  const hasDesktopSettingsApi = Boolean(window.codedt?.settings?.saveProvider);
+
+  useEffect(() => {
+    return () => {
+      if (languageFeedbackTimeoutRef.current) {
+        window.clearTimeout(languageFeedbackTimeoutRef.current);
+      }
+      if (desktopFeedbackTimeoutRef.current) {
+        window.clearTimeout(desktopFeedbackTimeoutRef.current);
+      }
+      if (settingsFeedbackTimeoutRef.current) {
+        window.clearTimeout(settingsFeedbackTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("codedt-language", language);
@@ -677,6 +517,45 @@ export function App() {
       return current;
     });
   }, [language]);
+
+  function handleLanguageChange(nextLanguage: Language) {
+    if (nextLanguage === language) {
+      return;
+    }
+
+    if (languageFeedbackTimeoutRef.current) {
+      window.clearTimeout(languageFeedbackTimeoutRef.current);
+    }
+
+    setLanguage(nextLanguage);
+    setLanguageFeedback(
+      nextLanguage === "zh-CN"
+        ? "已切换到中文，并会记住这个选择。"
+        : "Switched to English and saved your preference."
+    );
+    languageFeedbackTimeoutRef.current = window.setTimeout(() => {
+      setLanguageFeedback(null);
+      languageFeedbackTimeoutRef.current = null;
+    }, 2400);
+  }
+
+  function showDesktopOnlyNotice(
+    capability: "workspace" | "settings" | "preview" | "command" | "git",
+    options?: {
+      setInlineMessage?: (message: string) => void;
+    }
+  ) {
+    const message = desktopOnlyMessage(language, capability);
+    options?.setInlineMessage?.(message);
+    setDesktopFeedback(message);
+    if (desktopFeedbackTimeoutRef.current) {
+      window.clearTimeout(desktopFeedbackTimeoutRef.current);
+    }
+    desktopFeedbackTimeoutRef.current = window.setTimeout(() => {
+      setDesktopFeedback(null);
+      desktopFeedbackTimeoutRef.current = null;
+    }, 2800);
+  }
 
   const filteredTree = useMemo(() => filterTree(workspace?.tree ?? [], fileSearch), [workspace, fileSearch]);
   const fileCount = useMemo(() => countFiles(filteredTree), [filteredTree]);
@@ -876,7 +755,9 @@ export function App() {
 
   async function handleOpenWorkspace() {
     if (!window.codedt?.workspace?.openProject) {
-      setFileError(translateRuntimeMessage(language, "Open the workspace in Electron."));
+      showDesktopOnlyNotice("workspace", {
+        setInlineMessage: setFileError
+      });
       return;
     }
 
@@ -1014,6 +895,11 @@ export function App() {
 
   async function checkPreview() {
     if (!window.codedt?.preview?.detect || !previewInput.trim()) {
+      if (!window.codedt?.preview?.detect) {
+        showDesktopOnlyNotice("preview", {
+          setInlineMessage: setPreviewMessage
+        });
+      }
       return;
     }
 
@@ -1034,6 +920,9 @@ export function App() {
 
   async function startPreviewServer() {
     if (!window.codedt?.preview?.start) {
+      showDesktopOnlyNotice("preview", {
+        setInlineMessage: setPreviewMessage
+      });
       return;
     }
 
@@ -1043,6 +932,9 @@ export function App() {
 
   async function stopPreviewServer() {
     if (!window.codedt?.preview?.stop) {
+      showDesktopOnlyNotice("preview", {
+        setInlineMessage: setPreviewMessage
+      });
       return;
     }
 
@@ -1052,6 +944,11 @@ export function App() {
 
   async function capturePreview() {
     if (!previewUrl || !window.codedt?.preview?.capture) {
+      if (!window.codedt?.preview?.capture) {
+        showDesktopOnlyNotice("preview", {
+          setInlineMessage: setPreviewMessage
+        });
+      }
       return;
     }
 
@@ -1067,6 +964,9 @@ export function App() {
 
   async function runCommand() {
     if (!window.codedt?.command?.run) {
+      showDesktopOnlyNotice("command", {
+        setInlineMessage: setPreviewMessage
+      });
       return;
     }
 
@@ -1076,6 +976,9 @@ export function App() {
 
   async function stopCommand() {
     if (!window.codedt?.command?.stop) {
+      showDesktopOnlyNotice("command", {
+        setInlineMessage: setPreviewMessage
+      });
       return;
     }
 
@@ -1085,6 +988,9 @@ export function App() {
 
   async function stageAll() {
     if (!window.codedt?.git?.stage) {
+      showDesktopOnlyNotice("git", {
+        setInlineMessage: setGitMessage
+      });
       return;
     }
 
@@ -1094,6 +1000,9 @@ export function App() {
 
   async function unstageAll() {
     if (!window.codedt?.git?.unstage) {
+      showDesktopOnlyNotice("git", {
+        setInlineMessage: setGitMessage
+      });
       return;
     }
 
@@ -1102,7 +1011,14 @@ export function App() {
   }
 
   async function commitChanges() {
-    if (!window.codedt?.git?.commit || !commitMessage.trim()) {
+    if (!window.codedt?.git?.commit) {
+      showDesktopOnlyNotice("git", {
+        setInlineMessage: setGitMessage
+      });
+      return;
+    }
+
+    if (!commitMessage.trim()) {
       return;
     }
 
@@ -1118,6 +1034,9 @@ export function App() {
 
   async function pushChanges() {
     if (!window.codedt?.git?.push) {
+      showDesktopOnlyNotice("git", {
+        setInlineMessage: setGitMessage
+      });
       return;
     }
 
@@ -1132,6 +1051,17 @@ export function App() {
 
   async function saveSettings(nextSettings: ProviderSettings) {
     if (!window.codedt?.settings?.saveProvider) {
+      const fallbackMessage = desktopOnlyMessage(language, "settings");
+      setSettingsMessage(fallbackMessage);
+      showDesktopOnlyNotice("settings");
+      setSettingsFeedback(fallbackMessage);
+      if (settingsFeedbackTimeoutRef.current) {
+        window.clearTimeout(settingsFeedbackTimeoutRef.current);
+      }
+      settingsFeedbackTimeoutRef.current = window.setTimeout(() => {
+        setSettingsFeedback(null);
+        settingsFeedbackTimeoutRef.current = null;
+      }, 2600);
       return;
     }
 
@@ -1142,6 +1072,18 @@ export function App() {
       setProviderSettings(saved);
       setSettingsMessage(t("provider_saved"));
       setSettingsOpen(false);
+      if (settingsFeedbackTimeoutRef.current) {
+        window.clearTimeout(settingsFeedbackTimeoutRef.current);
+      }
+      setSettingsFeedback(
+        language === "zh-CN"
+          ? `已保存 ${providerOptionLabel(language, saved.provider)} 设置。`
+          : `${providerOptionLabel(language, saved.provider)} settings saved.`
+      );
+      settingsFeedbackTimeoutRef.current = window.setTimeout(() => {
+        setSettingsFeedback(null);
+        settingsFeedbackTimeoutRef.current = null;
+      }, 2600);
     } finally {
       setIsSavingSettings(false);
     }
@@ -1158,14 +1100,14 @@ export function App() {
           <div className="language-switch">
             <button
               className={`secondary-button language-button ${language === "zh-CN" ? "is-active-filter" : ""}`}
-              onClick={() => setLanguage("zh-CN")}
+              onClick={() => handleLanguageChange("zh-CN")}
               type="button"
             >
               {t("chinese")}
             </button>
             <button
               className={`secondary-button language-button ${language === "en-US" ? "is-active-filter" : ""}`}
-              onClick={() => setLanguage("en-US")}
+              onClick={() => handleLanguageChange("en-US")}
               type="button"
             >
               {t("english")}
@@ -1184,9 +1126,14 @@ export function App() {
           <p className="panel-note">{t("choose_workspace")}</p>
         )}
 
+        {languageFeedback ? <p className="panel-note language-feedback">{languageFeedback}</p> : null}
+        {desktopFeedback ? <p className="panel-note desktop-feedback">{desktopFeedback}</p> : null}
+        {settingsFeedback ? <p className="panel-note settings-feedback">{settingsFeedback}</p> : null}
+
         <button className="primary-button" disabled={isOpeningWorkspace} onClick={handleOpenWorkspace} type="button">
           <FolderOpen size={18} />
           {isOpeningWorkspace ? t("opening") : t("open_workspace")}
+          {!hasDesktopWorkspaceApi ? <span className="capability-badge">{desktopOnlyBadgeLabel(language)}</span> : null}
         </button>
 
         {fileError ? <p className="error-note">{fileError}</p> : null}
@@ -1223,6 +1170,7 @@ export function App() {
           <div>
             <GitBranch size={17} />
             <span>{t("git")}</span>
+            {!hasDesktopGitApi ? <span className="capability-badge">{desktopOnlyBadgeLabel(language)}</span> : null}
           </div>
           <strong>{formatGitSummary(language, gitStatus, t)}</strong>
         </section>
@@ -1390,7 +1338,10 @@ export function App() {
         <section className="review-card">
           <div className="section-title">
             <span>{t("preview")}</span>
-            <span>{formatRuntimeState(language, previewStatus.state)}</span>
+            <span className="section-title-meta">
+              {!hasDesktopPreviewApi ? <span className="capability-badge">{desktopOnlyBadgeLabel(language)}</span> : null}
+              <span>{formatRuntimeState(language, previewStatus.state)}</span>
+            </span>
           </div>
           <div className="preview-controls">
             <label className="preview-input">
@@ -1458,7 +1409,10 @@ export function App() {
         <section className="review-card terminal-card">
           <div className="section-title">
             <span>{t("command")}</span>
-            <span>{formatRuntimeState(language, workspaceCommandStatus.state)}</span>
+            <span className="section-title-meta">
+              {!hasDesktopCommandApi ? <span className="capability-badge">{desktopOnlyBadgeLabel(language)}</span> : null}
+              <span>{formatRuntimeState(language, workspaceCommandStatus.state)}</span>
+            </span>
           </div>
           <div className="preview-controls">
             <label className="preview-input">
@@ -1496,6 +1450,7 @@ export function App() {
         open={settingsOpen}
         settings={providerSettings}
         isSaving={isSavingSettings}
+        showDesktopBadge={!hasDesktopSettingsApi}
         message={settingsMessage}
         onClose={() => setSettingsOpen(false)}
         onSave={(nextSettings) => {
@@ -1505,3 +1460,4 @@ export function App() {
     </div>
   );
 }
+

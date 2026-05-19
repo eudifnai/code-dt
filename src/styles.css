@@ -101,7 +101,6 @@ button:disabled {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0;
-  text-transform: uppercase;
 }
 
 h1,
@@ -196,6 +195,14 @@ h2 {
   color: #aab8b2;
   font-size: 13px;
   font-weight: 800;
+}
+
+.section-title-meta {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
 }
 
 .session-toolbar,
@@ -378,6 +385,35 @@ h2 {
 .panel-note {
   color: #cfd7d3;
   background: rgba(240, 195, 106, 0.1);
+}
+
+.capability-note {
+  margin: 0 0 8px;
+  color: #9fb8ff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.capability-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 17px;
+  border: 1px solid rgba(95, 142, 255, 0.22);
+  border-radius: 999px;
+  padding: 0 7px;
+  color: #c6d9ff;
+  background: rgba(95, 142, 255, 0.1);
+  font-size: 9px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.primary-button .capability-badge,
+.secondary-button .capability-badge,
+.send-button .capability-badge,
+.tool-button .capability-badge {
+  margin-left: 6px;
 }
 
 .error-note {
@@ -811,9 +847,31 @@ h2 {
   gap: 8px;
 }
 
+.language-feedback {
+  margin-top: 10px;
+}
+
+.desktop-feedback {
+  margin-top: 10px;
+  color: #cfe2ff;
+  background: rgba(95, 142, 255, 0.12);
+}
+
+.settings-feedback {
+  margin-top: 10px;
+  color: #c9f2d8;
+  background: rgba(116, 210, 154, 0.14);
+}
+
 .language-button {
   min-width: 68px;
   padding: 0 12px;
+}
+
+.settings-helper-note {
+  color: #aab8b2;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .mode-strip {

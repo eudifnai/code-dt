@@ -1,11 +1,12 @@
-import { app, BrowserWindow, dialog, ipcMain, safeStorage, shell } from "electron";
+﻿import { app, BrowserWindow, dialog, ipcMain, safeStorage, shell } from "electron";
 import { spawn } from "node:child_process";
 import { mkdir, open, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   buildDefaultSessionName as sharedBuildDefaultSessionName,
-  localizeByLanguage,
+  formatGitPushSummary,
+  translateMain,
   type AppLanguage
 } from "./i18n.js";
 
@@ -348,12 +349,6 @@ function getSessionPath() {
 
 function normalizeUiLanguage(language: unknown): AppLanguage {
   return language === "en-US" ? "en-US" : "zh-CN";
-}
-
-const localizeMain = localizeByLanguage;
-
-export function legacyBuildDefaultSessionName(index: number, language: AppLanguage) {
-  return language === "zh-CN" ? `会话 ${index}` : `Session ${index}`;
 }
 
 async function readStoredAppSettings(): Promise<StoredAppSettings> {
@@ -1040,9 +1035,9 @@ function describeGitChangeCode(indexStatus: string, worktreeStatus: string) {
     } else if (indexStatus === "D") {
       parts.push("已暂存删除");
     } else if (indexStatus === "R") {
-      parts.push("重命名");
+      parts.push("已重命名");
     } else if (indexStatus === "C") {
-      parts.push("复制");
+      parts.push("已复制");
     }
   }
 
@@ -1211,16 +1206,16 @@ async function stageGitChanges(
 ): Promise<GitStatusSummary> {
   const uiLanguage = await readUiLanguage();
   if (!workspacePath) {
-    throw new Error(localizeMain(uiLanguage, "请先打开工作区，再暂存 Git 改动。", "Open a workspace before staging git changes."));
+    throw new Error(translateMain(uiLanguage, "git_open_stage"));
   }
 
   const gitStatus = await readGitStatusSummary(workspacePath);
   if (!gitStatus.available) {
-    throw new Error(localizeMain(uiLanguage, "当前环境里无法使用 Git。", "Git is not available in this environment."));
+    throw new Error(translateMain(uiLanguage, "git_unavailable"));
   }
 
   if (!gitStatus.isRepo || !gitStatus.rootPath) {
-    throw new Error(localizeMain(uiLanguage, "当前工作区不在 Git 仓库中。", "This workspace is not inside a git repository."));
+    throw new Error(translateMain(uiLanguage, "git_not_repo"));
   }
 
   const paths = (request?.paths ?? [])
@@ -1246,16 +1241,16 @@ async function unstageGitChanges(
 ): Promise<GitStatusSummary> {
   const uiLanguage = await readUiLanguage();
   if (!workspacePath) {
-    throw new Error(localizeMain(uiLanguage, "请先打开工作区，再取消暂存 Git 改动。", "Open a workspace before unstaging git changes."));
+    throw new Error(translateMain(uiLanguage, "git_open_unstage"));
   }
 
   const gitStatus = await readGitStatusSummary(workspacePath);
   if (!gitStatus.available) {
-    throw new Error(localizeMain(uiLanguage, "当前环境里无法使用 Git。", "Git is not available in this environment."));
+    throw new Error(translateMain(uiLanguage, "git_unavailable"));
   }
 
   if (!gitStatus.isRepo || !gitStatus.rootPath) {
-    throw new Error(localizeMain(uiLanguage, "当前工作区不在 Git 仓库中。", "This workspace is not inside a git repository."));
+    throw new Error(translateMain(uiLanguage, "git_not_repo"));
   }
 
   const paths = (request?.paths ?? [])
@@ -1281,25 +1276,25 @@ async function commitGitChanges(
 ): Promise<GitCommitResult> {
   const uiLanguage = await readUiLanguage();
   if (!workspacePath) {
-    throw new Error(localizeMain(uiLanguage, "请先打开工作区，再提交 Git 改动。", "Open a workspace before committing git changes."));
+    throw new Error(translateMain(uiLanguage, "git_open_commit"));
   }
 
   const gitStatus = await readGitStatusSummary(workspacePath);
   if (!gitStatus.available) {
-    throw new Error(localizeMain(uiLanguage, "当前环境里无法使用 Git。", "Git is not available in this environment."));
+    throw new Error(translateMain(uiLanguage, "git_unavailable"));
   }
 
   if (!gitStatus.isRepo || !gitStatus.rootPath) {
-    throw new Error(localizeMain(uiLanguage, "当前工作区不在 Git 仓库中。", "This workspace is not inside a git repository."));
+    throw new Error(translateMain(uiLanguage, "git_not_repo"));
   }
 
   const message = request.message.trim();
   if (!message) {
-    throw new Error(localizeMain(uiLanguage, "提交说明不能为空。", "Commit message cannot be empty."));
+    throw new Error(translateMain(uiLanguage, "git_commit_message_required"));
   }
 
   if (gitStatus.staged <= 0) {
-    throw new Error(localizeMain(uiLanguage, "提交前请至少暂存一个文件。", "Stage at least one file before committing."));
+    throw new Error(translateMain(uiLanguage, "git_commit_stage_required"));
   }
 
   const commitMessagePath = path.join(
@@ -1318,7 +1313,7 @@ async function commitGitChanges(
   const updatedStatus = await readGitStatusSummary(workspacePath);
   const commitSummary =
     (await runGit(["log", "-1", "--pretty=format:%h %s"], gitStatus.rootPath)) ||
-    localizeMain(uiLanguage, "已创建提交", "Commit created");
+    translateMain(uiLanguage, "git_commit_created");
 
   return {
     status: updatedStatus,
@@ -1332,21 +1327,21 @@ async function switchGitBranch(
 ): Promise<GitStatusSummary> {
   const uiLanguage = await readUiLanguage();
   if (!workspacePath) {
-    throw new Error(localizeMain(uiLanguage, "请先打开工作区，再切换分支。", "Open a workspace before switching branches."));
+    throw new Error(translateMain(uiLanguage, "git_open_switch_branch"));
   }
 
   const gitStatus = await readGitStatusSummary(workspacePath);
   if (!gitStatus.available) {
-    throw new Error(localizeMain(uiLanguage, "当前环境里无法使用 Git。", "Git is not available in this environment."));
+    throw new Error(translateMain(uiLanguage, "git_unavailable"));
   }
 
   if (!gitStatus.isRepo || !gitStatus.rootPath) {
-    throw new Error(localizeMain(uiLanguage, "当前工作区不在 Git 仓库中。", "This workspace is not inside a git repository."));
+    throw new Error(translateMain(uiLanguage, "git_not_repo"));
   }
 
   const branchName = request.name.trim();
   if (!branchName) {
-    throw new Error(localizeMain(uiLanguage, "分支名不能为空。", "Branch name cannot be empty."));
+    throw new Error(translateMain(uiLanguage, "git_branch_name_required"));
   }
 
   await runGit(["switch", branchName], gitStatus.rootPath);
@@ -1359,21 +1354,21 @@ async function createGitBranch(
 ): Promise<GitStatusSummary> {
   const uiLanguage = await readUiLanguage();
   if (!workspacePath) {
-    throw new Error(localizeMain(uiLanguage, "请先打开工作区，再创建分支。", "Open a workspace before creating a branch."));
+    throw new Error(translateMain(uiLanguage, "git_open_create_branch"));
   }
 
   const gitStatus = await readGitStatusSummary(workspacePath);
   if (!gitStatus.available) {
-    throw new Error(localizeMain(uiLanguage, "当前环境里无法使用 Git。", "Git is not available in this environment."));
+    throw new Error(translateMain(uiLanguage, "git_unavailable"));
   }
 
   if (!gitStatus.isRepo || !gitStatus.rootPath) {
-    throw new Error(localizeMain(uiLanguage, "当前工作区不在 Git 仓库中。", "This workspace is not inside a git repository."));
+    throw new Error(translateMain(uiLanguage, "git_not_repo"));
   }
 
   const branchName = request.name.trim();
   if (!branchName) {
-    throw new Error(localizeMain(uiLanguage, "分支名不能为空。", "Branch name cannot be empty."));
+    throw new Error(translateMain(uiLanguage, "git_branch_name_required"));
   }
 
   await runGit(["switch", "-c", branchName], gitStatus.rootPath);
@@ -1383,24 +1378,24 @@ async function createGitBranch(
 async function pushGitBranch(workspacePath: string | null): Promise<GitPushResult> {
   const uiLanguage = await readUiLanguage();
   if (!workspacePath) {
-    throw new Error(localizeMain(uiLanguage, "请先打开工作区，再推送分支。", "Open a workspace before pushing a branch."));
+    throw new Error(translateMain(uiLanguage, "git_open_push_branch"));
   }
 
   const gitStatus = await readGitStatusSummary(workspacePath);
   if (!gitStatus.available) {
-    throw new Error(localizeMain(uiLanguage, "当前环境里无法使用 Git。", "Git is not available in this environment."));
+    throw new Error(translateMain(uiLanguage, "git_unavailable"));
   }
 
   if (!gitStatus.isRepo || !gitStatus.rootPath) {
-    throw new Error(localizeMain(uiLanguage, "当前工作区不在 Git 仓库中。", "This workspace is not inside a git repository."));
+    throw new Error(translateMain(uiLanguage, "git_not_repo"));
   }
 
   if (!gitStatus.branch) {
-    throw new Error(localizeMain(uiLanguage, "CodeDT 无法识别当前分支。", "CodeDT could not determine the current branch."));
+    throw new Error(translateMain(uiLanguage, "git_branch_unknown"));
   }
 
   if (gitStatus.remotes.length === 0) {
-    throw new Error(localizeMain(uiLanguage, "这个仓库还没有配置 Git 远程地址。", "No git remote is configured for this repository."));
+    throw new Error(translateMain(uiLanguage, "git_remote_missing"));
   }
 
   if (gitStatus.upstreamBranch) {
@@ -1415,9 +1410,7 @@ async function pushGitBranch(workspacePath: string | null): Promise<GitPushResul
   const status = await readGitStatusSummary(workspacePath);
   return {
     status,
-    pushSummary: status.upstreamBranch
-      ? localizeMain(uiLanguage, `已将 ${gitStatus.branch} 推送到 ${status.upstreamBranch}。`, `Pushed ${gitStatus.branch} to ${status.upstreamBranch}.`)
-      : localizeMain(uiLanguage, `已推送 ${gitStatus.branch}。`, `Pushed ${gitStatus.branch}.`)
+    pushSummary: formatGitPushSummary(uiLanguage, gitStatus.branch, status.upstreamBranch)
   };
 }
 
@@ -1579,16 +1572,15 @@ async function detectPreviewUrls(urls: string[]) {
 
   return results;
 }
-
 async function runWorkspaceCommand(command: string, displayCommand?: string) {
   const uiLanguage = await readUiLanguage();
   if (!currentWorkspacePath) {
-    throw new Error(localizeMain(uiLanguage, "当前还没有打开工作区。", "No workspace is open."));
+    throw new Error(translateMain(uiLanguage, "workspace_open_required"));
   }
 
   const trimmedCommand = command.trim();
   if (!trimmedCommand) {
-    throw new Error(localizeMain(uiLanguage, "命令不能为空。", "Command cannot be empty."));
+    throw new Error(translateMain(uiLanguage, "command_empty"));
   }
 
   if (workspaceCommandProcess && !workspaceCommandProcess.killed) {
@@ -1683,7 +1675,7 @@ function stopWorkspaceCommand() {
 async function startPreviewServer() {
   const uiLanguage = await readUiLanguage();
   if (!currentWorkspacePath) {
-    throw new Error(localizeMain(uiLanguage, "当前还没有打开工作区。", "No workspace is open."));
+    throw new Error(translateMain(uiLanguage, "workspace_open_required"));
   }
 
   if (previewServerProcess && !previewServerProcess.killed) {
@@ -1699,15 +1691,8 @@ async function startPreviewServer() {
   );
 
   if (!scriptName) {
-    throw new Error(
-      localizeMain(
-        uiLanguage,
-        "没有找到可用于启动预览的 package 脚本。",
-        "No supported package script was found for preview startup."
-      )
-    );
+    throw new Error(translateMain(uiLanguage, "preview_start_script_missing"));
   }
-
   const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
   previewServerLog = "";
   previewServerStatus = {
@@ -1791,11 +1776,8 @@ function buildChatCompletionsUrl(baseUrl: string) {
 async function sendChatCompletion(request: ChatRequest): Promise<ChatResponse> {
   const providerSettings = await readProviderSettings();
   const uiLanguage = await readUiLanguage();
-
   if (!providerSettings.apiKey) {
-    throw new Error(
-      localizeMain(uiLanguage, "还没有配置 Provider API Key。", "Provider API key is not configured.")
-    );
+    throw new Error(translateMain(uiLanguage, "provider_api_key_missing"));
   }
 
   const response = await fetch(buildChatCompletionsUrl(providerSettings.baseUrl), {
@@ -1824,7 +1806,7 @@ async function sendChatCompletion(request: ChatRequest): Promise<ChatResponse> {
 
   if (!content) {
     throw new Error(
-      localizeMain(uiLanguage, "模型响应里没有返回助手内容。", "Provider response did not include assistant content.")
+      translateMain(uiLanguage, "provider_missing_content")
     );
   }
 
@@ -1844,9 +1826,7 @@ async function streamChatCompletion(
   const uiLanguage = await readUiLanguage();
 
   if (!providerSettings.apiKey) {
-    throw new Error(
-      localizeMain(uiLanguage, "还没有配置 Provider API Key。", "Provider API key is not configured.")
-    );
+    throw new Error(translateMain(uiLanguage, "provider_api_key_missing"));
   }
 
   const controller = new AbortController();
@@ -2075,12 +2055,11 @@ async function restoreWorkspaceSnapshot(workspacePath: string): Promise<Workspac
     tree: await readWorkspaceTree(workspacePath)
   };
 }
-
-ipcMain.handle("workspace:open", async () => {
+async function openWorkspace(): Promise<WorkspaceSnapshot | null> {
   const uiLanguage = await readUiLanguage();
   const result = await dialog.showOpenDialog({
     properties: ["openDirectory"],
-    title: localizeMain(uiLanguage, "打开 CodeDT 工作区", "Open CodeDT Workspace")
+    title: translateMain(uiLanguage, "open_workspace_dialog_title")
   });
 
   if (result.canceled || result.filePaths.length === 0) {
@@ -2089,6 +2068,10 @@ ipcMain.handle("workspace:open", async () => {
 
   const workspacePath = result.filePaths[0];
   return restoreWorkspaceSnapshot(workspacePath);
+}
+
+ipcMain.handle("workspace:open", async () => {
+  return openWorkspace();
 });
 
 ipcMain.handle(
@@ -2096,12 +2079,12 @@ ipcMain.handle(
   async (_event, filePath: string): Promise<WorkspaceFilePreview> => {
     const uiLanguage = await readUiLanguage();
     if (!isPathInsideWorkspace(filePath)) {
-      throw new Error(localizeMain(uiLanguage, "文件不在当前工作区内。", "File is outside the current workspace."));
+      throw new Error(translateMain(uiLanguage, "workspace_file_outside"));
     }
 
     const fileStats = await stat(filePath);
     if (!fileStats.isFile()) {
-      throw new Error(localizeMain(uiLanguage, "所选路径不是文件。", "Selected path is not a file."));
+      throw new Error(translateMain(uiLanguage, "workspace_path_not_file"));
     }
 
     const sniffBytesToRead = Math.min(fileStats.size, binarySniffBytes);
@@ -2115,18 +2098,13 @@ ipcMain.handle(
     }
 
     if (isKnownBinaryFile(filePath) || hasNullByte(sniffBuffer)) {
-      const uiLanguage = await readUiLanguage();
       return {
         path: filePath,
         name: path.basename(filePath),
         size: fileStats.size,
         content: "",
         kind: "binary",
-        reason: localizeMain(
-          uiLanguage,
-          "CodeDT 已跳过预览，因为这个文件看起来是二进制文件。",
-          "CodeDT skipped preview because this file appears to be binary."
-        ),
+        reason: translateMain(uiLanguage, "binary_preview_skipped"),
         truncated: false
       };
     }
@@ -2160,13 +2138,13 @@ ipcMain.handle(
   ): Promise<WorkspaceFilePreview> => {
     const uiLanguage = await readUiLanguage();
     if (!isPathInsideWorkspace(payload.filePath)) {
-      throw new Error(localizeMain(uiLanguage, "文件不在当前工作区内。", "File is outside the current workspace."));
+      throw new Error(translateMain(uiLanguage, "workspace_file_outside"));
     }
 
     try {
       const fileStats = await stat(payload.filePath);
       if (!fileStats.isFile()) {
-        throw new Error(localizeMain(uiLanguage, "所选路径不是文件。", "Selected path is not a file."));
+        throw new Error(translateMain(uiLanguage, "workspace_path_not_file"));
       }
     } catch (error) {
       if (!(error instanceof Error) || !("code" in error) || error.code !== "ENOENT") {
@@ -2192,7 +2170,6 @@ ipcMain.handle(
     };
   }
 );
-
 ipcMain.handle("workspace:getSnapshot", async () => {
   if (!currentWorkspacePath) {
     return null;
@@ -2423,7 +2400,7 @@ ipcMain.on("ai:chatStream", async (event, payload: { requestId: string; request:
       error:
         error instanceof Error
           ? error.message
-          : localizeMain(uiLanguage, "流式请求出现未知错误。", "Unknown streaming error.")
+          : translateMain(uiLanguage, "stream_unknown_error")
     } satisfies ChatStreamChunk);
   }
 });
@@ -2434,12 +2411,10 @@ ipcMain.on("ai:cancelChatStream", (_event, payload: { requestId: string }) => {
 
 function createMainWindow() {
   const mainWindow = new BrowserWindow({
-    width: 1440,
     height: 920,
     minWidth: 1120,
     minHeight: 720,
     title: "CodeDT",
-    icon: path.join(__dirname, "../assets/app-icon.png"),
     backgroundColor: "#101114",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
@@ -2476,3 +2451,7 @@ app.on("window-all-closed", () => {
     app.quit();
   }
 });
+
+
+
+

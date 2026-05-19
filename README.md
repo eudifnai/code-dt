@@ -67,6 +67,10 @@ CodeDT is a DeepSeek-first local AI coding workspace. It is currently in the v0.
 - Git branch helpers for creating or switching branches, plus unstage controls for tightening the commit boundary before you commit.
 - Remote-aware push support that can publish the current branch after commit, including first-push upstream setup when a remote exists.
 - A copyable handoff summary that bundles branch, upstream, latest commit, preview, and verification context into one shareable block.
+- Chinese and English UI switching with remembered language preference across restarts.
+- Language-aware provider settings copy, desktop feedback, and common runtime error translation in the browser shell.
+- Clear browser-shell vs Electron capability boundaries, including `仅桌面版` / `Desktop only` affordances on Electron-only surfaces.
+- Reusable browser-shell audit coverage through `scripts/browser-shell-audit.mjs`, with screenshot output in `.tmp/`.
 - Product design documents in `docs/`.
 - Static review and task panels for the first CodeDT workbench.
 
@@ -92,6 +96,18 @@ npm run build
 
 Validate the project.
 
+```bash
+node_modules/.bin/electron.cmd scripts/browser-shell-audit.mjs http://127.0.0.1:5173/
+```
+
+Run the browser-shell acceptance audit and emit a screenshot plus structured UI findings.
+
+```bash
+node_modules/.bin/electron.cmd scripts/electron-acceptance-audit.mjs http://127.0.0.1:5173/
+```
+
+Run the desktop-shell audit harness to record what a seeded Electron wrapper around the local app can and cannot verify automatically.
+
 ## Release Candidate Snapshot
 
 CodeDT is now in a strong demo-ready state for a local-first AI coding workspace. The current build already supports the core loop:
@@ -100,23 +116,27 @@ CodeDT is now in a strong demo-ready state for a local-first AI coding workspace
 
 ### Best Entry Points
 
+- Demo release notes: [docs/CodeDT_Demo_Release_Notes_v0.2.md](E:/ai_project/CodeDT/docs/CodeDT_Demo_Release_Notes_v0.2.md)
 - Demo guide: [docs/CodeDT_Demo_Checklist_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Demo_Checklist_v0.1.md)
 - Browser walkthrough: [docs/CodeDT_InApp_Browser_Walkthrough_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_InApp_Browser_Walkthrough_v0.1.md)
 - Release checklist: [docs/CodeDT_Release_Checklist_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Release_Checklist_v0.1.md)
 - Electron acceptance report: [docs/CodeDT_Electron_Acceptance_Report_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Electron_Acceptance_Report_v0.1.md)
 - Electron final acceptance script: [docs/CodeDT_Electron_Final_Acceptance_Script_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Electron_Final_Acceptance_Script_v0.1.md)
+- Electron short acceptance pass: [docs/CodeDT_Electron_Final_Acceptance_Short_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Electron_Final_Acceptance_Short_v0.1.md)
 - Product direction: [docs/CodeDT_Product_Design_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Product_Design_v0.1.md)
 - UI structure: [docs/CodeDT_UI_Wireframe_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_UI_Wireframe_v0.1.md)
 
 ### What Works Well Right Now
 
 - Local workspace opening, indexing, file search, and file preview
+- Browser shell onboarding is now bilingual, honest about desktop-only capabilities, and polished enough for guided demo use
 - Provider setup for DeepSeek and OpenAI-compatible gateways
 - Mode-aware chat with explicit file context and streaming responses
 - Patch planning, AI draft generation, manual draft editing, diff review, and safe apply
 - Multi-session workspace memory with search, metadata, and restored task state
 - Local preview discovery, dev server start and stop, log streaming, and auto-readiness checks
 - Preview capture, before-and-after compare, and verification runs tied to visual output
+- Browser-shell capability badges and fallback notices make the Electron-vs-web boundary explicit without feeling broken
 - Verification commands, context-aware recipes, run history, replay, notes, and summary export
 - Git-aware workspace status for branch context and quick change review before verification
 - Copyable commit draft text tied to the current workspace changes and validation loop
@@ -148,6 +168,8 @@ These are the main places where the app still feels like an advanced demo rather
 - No deep project-wide semantic search beyond current file and path ranking
 - No built-in auth, cloud sync, or shared team workspace model
 - Browser-side demo QA is still better documented than fully automated inside the product
+- The browser-shell audit script exists, but it is still an external QA utility rather than an in-app self-check surface
+- The current desktop audit harness is useful for seeded shell checks, but it does not replace a true operator pass in the real Electron main window
 - Preview capture is strong, but there is not yet a richer visual diff or annotation layer
 
 ## Next Frontier

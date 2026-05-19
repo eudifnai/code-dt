@@ -40,6 +40,28 @@ Observed process state during this pass:
 - Electron processes were running from `node_modules/electron/dist/electron.exe`
 - Browser shell was reachable on the expected local port
 
+### Desktop audit harness
+
+Ran:
+
+- `node_modules/.bin/electron.cmd scripts/electron-acceptance-audit.mjs http://127.0.0.1:5173/`
+
+Produced:
+
+- `.tmp/electron-acceptance-audit.png`
+
+Observed:
+
+- The seeded Electron wrapper around the localhost app shell launches successfully
+- Language switching still works inside that harness
+- Settings dialog still opens inside that harness
+- The harness does **not** expose the real desktop bridge in the same way as the actual app main window
+
+Interpretation:
+
+- This automated harness is useful for shell-level regression checks
+- It is not a substitute for the real operator-driven Electron acceptance pass on the shipped desktop window
+
 ### Repository context
 
 Observed:
@@ -56,12 +78,19 @@ Status:
 Confirmed:
 
 - Three-panel layout renders correctly
+- Chinese and English UI switching both work in the browser shell
 - `Quickstart` is visible and understandable
 - `Workflow presets` are present
 - `Starter prompts` are present
 - Right-panel empty states are descriptive
 - Browser-shell limitations are communicated clearly
+- Browser-shell capability badges are present at the section level without overwhelming every action
 - The redundant browser-only `Open Workspace` call to action was removed from the lower left-panel position, leaving a cleaner demo shell
+
+Additional browser-shell QA coverage now exists through:
+
+- `scripts/browser-shell-audit.mjs`
+- `.tmp/browser-shell-audit.png`
 
 Verified interaction:
 
@@ -73,6 +102,7 @@ Verified interaction:
 Status:
 
 - Electron shell launches
+- A seeded automated Electron wrapper can verify shell-level behavior and bilingual presentation
 - Full local-workflow interaction still requires direct clicking in the desktop window
 
 The following items are ready for desktop acceptance in the currently running Electron app:
@@ -149,3 +179,7 @@ Once those are complete, CodeDT will have both:
 
 - a strong automated preflight
 - a real operator-verified desktop acceptance pass
+
+Fastest operator path:
+
+- [CodeDT_Electron_Final_Acceptance_Short_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Electron_Final_Acceptance_Short_v0.1.md)

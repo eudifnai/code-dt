@@ -15,15 +15,18 @@ This checklist is for the final pre-release pass on the current CodeDT demo buil
 Use:
 
 - [CodeDT_InApp_Browser_Walkthrough_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_InApp_Browser_Walkthrough_v0.1.md)
+- `node_modules/.bin/electron.cmd scripts/browser-shell-audit.mjs http://127.0.0.1:5173/`
 
 Checklist:
 
 - [ ] Three-panel layout is stable
+- [ ] Chinese and English switching both look intentional
 - [ ] Quickstart is clear
 - [ ] Workflow presets work
 - [ ] Mode switching feels coherent
 - [ ] Review-panel empty states help rather than distract
 - [ ] Browser shell clearly communicates its Electron-only limits
+- [ ] Browser-shell capability badges stay concise and do not overwhelm the UI
 
 ## 3. Electron Acceptance Pass
 
@@ -83,6 +86,7 @@ Checklist:
 
 - [ ] README reflects the current release-candidate shape
 - [ ] Demo checklist is present and current
+- [ ] Browser-shell audit script and bilingual shell behavior are documented
 - [ ] Product design doc still matches the actual app
 - [ ] UI wireframe still roughly matches the shipped surfaces
 - [ ] This release checklist is current
