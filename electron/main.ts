@@ -2417,7 +2417,7 @@ function createMainWindow() {
     title: "CodeDT",
     backgroundColor: "#101114",
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
+      preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false
     }

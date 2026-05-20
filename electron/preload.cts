@@ -21,8 +21,7 @@ contextBridge.exposeInMainWorld("codedt", {
   settings: {
     getProvider: () => ipcRenderer.invoke("settings:getProvider"),
     getUiLanguage: () => ipcRenderer.invoke("settings:getUiLanguage"),
-    saveProvider: (settings: unknown) =>
-      ipcRenderer.invoke("settings:saveProvider", settings),
+    saveProvider: (settings: unknown) => ipcRenderer.invoke("settings:saveProvider", settings),
     saveUiLanguage: (language: string) => ipcRenderer.invoke("settings:saveUiLanguage", language)
   },
   session: {

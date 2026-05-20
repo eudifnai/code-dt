@@ -183,3 +183,6 @@ Once those are complete, CodeDT will have both:
 Fastest operator path:
 
 - [CodeDT_Electron_Final_Acceptance_Short_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Electron_Final_Acceptance_Short_v0.1.md)
+- [CodeDT_Electron_Final_Acceptance_Live_CN_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Electron_Final_Acceptance_Live_CN_v0.1.md)
+- [CodeDT_Electron_Final_Acceptance_Record_CN_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Electron_Final_Acceptance_Record_CN_v0.1.md)
+- [CodeDT_Acceptance_Result_CN_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Acceptance_Result_CN_v0.1.md)

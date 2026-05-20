@@ -176,7 +176,7 @@ async function main() {
   await fs.mkdir(outputDir, { recursive: true });
   await seedDesktopState();
 
-  const preloadPath = path.resolve("dist-electron/preload.js");
+  const preloadPath = path.resolve("dist-electron/preload.cjs");
   const win = new BrowserWindow({
     width: 1540,
     height: 980,

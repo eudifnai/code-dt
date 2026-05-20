@@ -123,6 +123,9 @@ CodeDT is now in a strong demo-ready state for a local-first AI coding workspace
 - Electron acceptance report: [docs/CodeDT_Electron_Acceptance_Report_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Electron_Acceptance_Report_v0.1.md)
 - Electron final acceptance script: [docs/CodeDT_Electron_Final_Acceptance_Script_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Electron_Final_Acceptance_Script_v0.1.md)
 - Electron short acceptance pass: [docs/CodeDT_Electron_Final_Acceptance_Short_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Electron_Final_Acceptance_Short_v0.1.md)
+- Electron live acceptance CN: [docs/CodeDT_Electron_Final_Acceptance_Live_CN_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Electron_Final_Acceptance_Live_CN_v0.1.md)
+- Electron acceptance record CN: [docs/CodeDT_Electron_Final_Acceptance_Record_CN_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Electron_Final_Acceptance_Record_CN_v0.1.md)
+- Acceptance result CN: [docs/CodeDT_Acceptance_Result_CN_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Acceptance_Result_CN_v0.1.md)
 - Product direction: [docs/CodeDT_Product_Design_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_Product_Design_v0.1.md)
 - UI structure: [docs/CodeDT_UI_Wireframe_v0.1.md](E:/ai_project/CodeDT/docs/CodeDT_UI_Wireframe_v0.1.md)
 
